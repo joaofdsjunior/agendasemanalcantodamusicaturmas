@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade de Turmas com Filtros - Canto da Música (SBC)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .filter-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>');
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.25em 1.25em;
+            transition: color 0.2s ease-in-out;
+        }
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+        }
+        .sort-indicator {
+            opacity: 0.4;
+            transition: opacity 0.2s ease-in-out;
+            width: 1em;
+            height: 1em;
+        }
+        .sortable-header.sorting-asc .sort-indicator,
+        .sortable-header.sorting-desc .sort-indicator {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800">Grade de Turmas Otimizada</h1>
+            <p class="text-lg text-slate-600 mt-1">Unidade São Bernardo (SBC)</p>
+        </header>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+            <table class="w-full text-sm text-left text-slate-500">
+                <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                    <tr>
+                        <th scope="col" class="px-4 py-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="sortable-header" data-sort-key="dia">Dia</span>
+                                <select id="filter-dia" class="filter-select w-full bg-slate-100 border-none focus:ring-0 font-semibold text-xs p-1 rounded">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="sortable-header" data-sort-key="horario">Horário</span>
+                                <select id="filter-horario" class="filter-select w-full bg-slate-100 border-none focus:ring-0 font-semibold text-xs p-1 rounded">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="sortable-header" data-sort-key="curso">Curso</span>
+                                <select id="filter-curso" class="filter-select w-full bg-slate-100 border-none focus:ring-0 font-semibold text-xs p-1 rounded">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="sortable-header" data-sort-key="idade">Faixa Etária</span>
+                                <select id="filter-idade" class="filter-select w-full bg-slate-100 border-none focus:ring-0 font-semibold text-xs p-1 rounded">
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="sortable-header" data-sort-key="professor">Professor(a)</span>
+                                <select id="filter-professor" class="filter-select w-full bg-slate-100 border-none focus:ring-0 font-semibold text-xs p-1 rounded">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="sortable-header" data-sort-key="sala">Sala</span>
+                                <select id="filter-sala" class="filter-select w-full bg-slate-100 border-none focus:ring-0 font-semibold text-xs p-1 rounded">
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-2 py-3 text-center">
+                            <button id="reset-filters-btn" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800" title="Limpar todos os filtros">Limpar</button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="turmas-tbody">
+                    <!-- Rows will be generated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const turmasData = [
+            { dia: 'Segunda', horario: '09:00 - 10:20', curso: 'Turma de Cordas', idade: '7 a 10 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Segunda', horario: '10:30 - 11:50', curso: 'Musicalização Bebês', idade: '2 a 4 anos', professor: 'Jainne Silva', sala: 'Sala Flex 1' },
+            { dia: 'Segunda', horario: '14:30 - 15:50', curso: 'Musicalização Pré-Escolar', idade: '4 a 6 anos', professor: 'Jainne Silva', sala: 'Sala Flex 1' },
+            { dia: 'Segunda', horario: '16:00 - 17:20', curso: 'Turma de Canto', idade: '7 a 10 anos', professor: 'Jainne Silva', sala: 'Sala Flex 2' },
+            { dia: 'Segunda', horario: '16:00 - 17:20', curso: 'Turma de Cordas', idade: '7 a 10 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Segunda', horario: '17:30 - 18:50', curso: 'Musicalização Pré-Escolar', idade: '4 a 6 anos', professor: 'Jainne Silva', sala: 'Sala Flex 1' },
+            { dia: 'Segunda', horario: '18:30 - 19:50', curso: 'Turma de Canto', idade: '7 a 10 anos', professor: 'Jainne Silva', sala: 'Sala Flex 2' },
+            { dia: 'Segunda', horario: '19:00 - 20:20', curso: 'Turma de Canto', idade: '16+ (Adultos)', professor: 'Jainne Silva', sala: 'Sala Flex 1' },
+            { dia: 'Segunda', horario: '20:00 - 21:20', curso: 'Turma de Cordas', idade: '16+ (Adultos)', professor: 'Samuel', sala: 'Sala Flex 2' },
+            { dia: 'Terça', horario: '10:30 - 11:50', curso: 'Turma de Cordas', idade: '7 a 10 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Terça', horario: '10:30 - 11:50', curso: 'Turma de Canto', idade: '16+ (Adultos)', professor: 'Giovani Moretti', sala: 'Sala Flex 2' },
+            { dia: 'Terça', horario: '14:30 - 15:50', curso: 'Iniciação Musical', idade: '7 a 10 anos', professor: 'Giovani Moretti', sala: 'Sala Flex 1' },
+            { dia: 'Terça', horario: '16:00 - 17:20', curso: 'Turma de Cordas', idade: '11 a 15 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Terça', horario: '16:00 - 17:20', curso: 'Turma de Canto', idade: '16+ (Adultos)', professor: 'Giovani Moretti', sala: 'Sala Flex 2' },
+            { dia: 'Terça', horario: '19:00 - 20:20', curso: 'Turma de Cordas', idade: '16+ (Adultos)', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Quarta', horario: '09:00 - 10:20', curso: 'Turma de Bateria', idade: '7 a 10 anos', professor: 'Caio', sala: 'Sala Bateria' },
+            { dia: 'Quarta', horario: '09:00 - 10:20', curso: 'Turma de Canto', idade: '16+ (Adultos)', professor: 'Giovani Moretti', sala: 'Sala Flex 1' },
+            { dia: 'Quarta', horario: '09:00 - 10:20', curso: 'Turma de Cordas', idade: '7 a 10 anos', professor: 'Samuel', sala: 'Sala Flex 2' },
+            { dia: 'Quarta', horario: '14:30 - 15:50', curso: 'Turma de Bateria', idade: '7 a 10 anos', professor: 'Caio', sala: 'Sala Bateria' },
+            { dia: 'Quarta', horario: '14:30 - 15:50', curso: 'Iniciação Musical (s/ Canto)', idade: '7 a 10 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Quarta', horario: '16:00 - 17:20', curso: 'Turma de Bateria', idade: '11 a 15 anos', professor: 'Caio', sala: 'Sala Bateria' },
+            { dia: 'Quarta', horario: '18:30 - 19:50', curso: 'Turma de Cordas', idade: '7 a 10 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Quarta', horario: '19:00 - 20:20', curso: 'Turma de Bateria', idade: '16+ (Adultos)', professor: 'Caio', sala: 'Sala Bateria' },
+            { dia: 'Quarta', horario: '19:00 - 20:20', curso: 'Turma de Cordas', idade: '11 a 15 anos', professor: 'Danilo', sala: 'Sala Flex 2' },
+            { dia: 'Quarta', horario: '19:00 - 20:20', curso: 'Turma de Cordas', idade: '16+ (Adultos)', professor: 'Giovani Moretti', sala: 'Sala Flex 1' },
+            { dia: 'Quinta', horario: '10:00 - 11:20', curso: 'Turma de Canto', idade: '16+ (Adultos)', professor: 'Giovani Moretti', sala: 'Sala Flex 2' },
+            { dia: 'Quinta', horario: '10:30 - 11:50', curso: 'Iniciação Musical', idade: '7 a 10 anos', professor: 'Giovani Moretti', sala: 'Sala Flex 1' },
+            { dia: 'Quinta', horario: '14:00 - 15:20', curso: 'Turma de Cordas', idade: '7 a 10 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Quinta', horario: '15:00 - 16:20', curso: 'Turma de Violino', idade: '7 a 10 anos', professor: 'Mayara', sala: 'Sala Flex 1' },
+            { dia: 'Quinta', horario: '17:00 - 18:20', curso: 'Turma de Cordas', idade: '11 a 15 anos', professor: 'Augusto', sala: 'Sala Flex 1' },
+            { dia: 'Quinta', horario: '18:30 - 19:50', curso: 'Prática de Banda', idade: '11 a 15 anos', professor: 'Augusto', sala: 'Sala Bateria' },
+            { dia: 'Quinta', horario: '18:30 - 19:50', curso: 'Turma de Canto', idade: '11 a 15 anos', professor: 'Giovani Moretti', sala: 'Sala Flex 1' },
+            { dia: 'Quinta', horario: '18:30 - 19:50', curso: 'Turma de Violino', idade: '11 a 15 anos', professor: 'Mayara', sala: 'Sala Flex 2' },
+            { dia: 'Quinta', horario: '20:00 - 21:20', curso: 'Turma de Cordas', idade: '16+ (Adultos)', professor: 'Augusto', sala: 'Sala Bateria' },
+            { dia: 'Sexta', horario: '14:30 - 15:50', curso: 'Musicalização Pré-Escolar', idade: '4 a 6 anos', professor: 'Mayara', sala: 'Sala Flex 1' },
+            { dia: 'Sexta', horario: '14:30 - 15:50', curso: 'Turma de Cordas', idade: '11 a 15 anos', professor: 'Samuel', sala: 'Sala Flex 2' },
+            { dia: 'Sexta', horario: '16:00 - 17:20', curso: 'Turma de Violino', idade: '7 a 10 anos', professor: 'Mayara', sala: 'Sala Flex 1' },
+            { dia: 'Sexta', horario: '17:30 - 18:50', curso: 'Musicalização Pré-Escolar', idade: '4 a 6 anos', professor: 'Mayara', sala: 'Sala Flex 1' },
+            { dia: 'Sexta', horario: '18:30 - 19:50', curso: 'Turma de Violino', idade: '16+ (Adultos)', professor: 'Mayara', sala: 'Sala Flex 1' },
+            { dia: 'Sexta', horario: '19:00 - 20:20', curso: 'Prática de Banda', idade: '16+ (Adultos)', professor: 'Samuel', sala: 'Sala Bateria' },
+            { dia: 'Sexta', horario: '19:00 - 20:20', curso: 'Turma de Cordas', idade: '16+ (Adultos)', professor: 'Samuel', sala: 'Sala Flex 2' },
+            { dia: 'Sábado', horario: '09:00 - 10:20', curso: 'Iniciação Musical', idade: '7 a 10 anos', professor: 'Giovani Moretti', sala: 'Sala Flex 1' },
+            { dia: 'Sábado', horario: '10:00 - 11:20', curso: 'Turma de Canto', idade: '7 a 10 anos', professor: 'Giovani Moretti', sala: 'Sala Flex 2' },
+            { dia: 'Sábado', horario: '10:00 - 11:20', curso: 'Turma de Cordas', idade: '7 a 10 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Sábado', horario: '11:30 - 12:50', curso: 'Turma de Canto', idade: '11 a 15 anos', professor: 'Giovani Moretti', sala: 'Sala Flex 2' },
+            { dia: 'Sábado', horario: '11:30 - 12:50', curso: 'Turma de Cordas', idade: '11 a 15 anos', professor: 'Samuel', sala: 'Sala Flex 1' },
+            { dia: 'Sábado', horario: '13:00 - 14:20', curso: 'Turma de Canto', idade: '16+ (Adultos)', professor: 'Giovani Moretti', sala: 'Sala Flex 2' },
+            { dia: 'Sábado', horario: '13:00 - 14:20', curso: 'Turma de Cordas', idade: '16+ (Adultos)', professor: 'Samuel', sala: 'Sala Flex 1' },
+        ];
+
+        const tbody = document.getElementById('turmas-tbody');
+        const thead = document.querySelector('thead');
+        const filters = {
+            dia: document.getElementById('filter-dia'),
+            horario: document.getElementById('filter-horario'),
+            curso: document.getElementById('filter-curso'),
+            idade: document.getElementById('filter-idade'),
+            professor: document.getElementById('filter-professor'),
+            sala: document.getElementById('filter-sala'),
+        };
+        const resetBtn = document.getElementById('reset-filters-btn');
+
+        let sortConfig = { key: 'dia', direction: 'ascending' };
+        const dayOrder = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+        function populateFilters() {
+            const options = { dia: new Set(), horario: new Set(), curso: new Set(), idade: new Set(), professor: new Set(), sala: new Set() };
+            turmasData.forEach(turma => Object.keys(options).forEach(key => options[key].add(turma[key])));
+            
+            Object.keys(options).forEach(key => {
+                const select = filters[key];
+                const firstOptionHTML = select.innerHTML;
+                select.innerHTML = firstOptionHTML; // Clear previous options but keep the first one
+                
+                let sortedOptions = Array.from(options[key]);
+                if (key === 'dia') {
+                    sortedOptions.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
+                } else {
+                    sortedOptions.sort();
+                }
+
+                sortedOptions.forEach(option => {
+                    const optElement = document.createElement('option');
+                    optElement.value = option;
+                    optElement.textContent = option;
+                    select.appendChild(optElement);
+                });
+            });
+        }
+
+        function renderTable() {
+            tbody.innerHTML = '';
+            
+            const filterValues = {
+                dia: filters.dia.value, horario: filters.horario.value, curso: filters.curso.value,
+                idade: filters.idade.value, professor: filters.professor.value, sala: filters.sala.value,
+            };
+
+            Object.keys(filters).forEach(key => {
+                filters[key].classList.toggle('text-indigo-600', filters[key].value !== '');
+                filters[key].classList.toggle('font-bold', filters[key].value !== '');
+            });
+
+            let dataToRender = [...turmasData];
+
+            // Sorting
+            if (sortConfig.key) {
+                dataToRender.sort((a, b) => {
+                    let valA = a[sortConfig.key];
+                    let valB = b[sortConfig.key];
+
+                    if (sortConfig.key === 'dia') {
+                        valA = dayOrder.indexOf(valA);
+                        valB = dayOrder.indexOf(valB);
+                    }
+
+                    if (valA < valB) return sortConfig.direction === 'ascending' ? -1 : 1;
+                    if (valA > valB) return sortConfig.direction === 'ascending' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            // Filtering
+            const filteredData = dataToRender.filter(turma => {
+                return Object.keys(filterValues).every(key => filterValues[key] === '' || turma[key] === filterValues[key]);
+            });
+
+            // Update sort indicators
+            document.querySelectorAll('.sortable-header').forEach(header => {
+                const key = header.dataset.sortKey;
+                header.classList.remove('sorting-asc', 'sorting-desc');
+                
+                const existingIndicator = header.querySelector('.sort-indicator');
+                if (existingIndicator) existingIndicator.remove();
+
+                if (key === sortConfig.key) {
+                    header.classList.add(sortConfig.direction === 'ascending' ? 'sorting-asc' : 'sorting-desc');
+                    const indicator = document.createElement('span');
+                    indicator.className = 'sort-indicator ml-1';
+                    indicator.textContent = sortConfig.direction === 'ascending' ? '↑' : '↓';
+                    header.appendChild(indicator);
+                }
+            });
+
+            if (filteredData.length === 0) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 7;
+                cell.className = 'px-6 py-4 text-center text-slate-500';
+                cell.textContent = 'Nenhuma turma encontrada com os filtros selecionados.';
+                row.appendChild(cell);
+                tbody.appendChild(row);
+            } else {
+                filteredData.forEach(turma => {
+                    const row = document.createElement('tr');
+                    row.className = 'bg-white border-b hover:bg-slate-50';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-slate-900">${turma.dia}</td>
+                        <td class="px-6 py-4">${turma.horario}</td>
+                        <td class="px-6 py-4">${turma.curso}</td>
+                        <td class="px-6 py-4">${turma.idade}</td>
+                        <td class="px-6 py-4">${turma.professor}</td>
+                        <td class="px-6 py-4">${turma.sala}</td>
+                        <td class="px-2 py-4"></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        Object.values(filters).forEach(filter => filter.addEventListener('change', renderTable));
+
+        thead.addEventListener('click', (e) => {
+            const header = e.target.closest('.sortable-header');
+            if (!header) return;
+            
+            const key = header.dataset.sortKey;
+            if (sortConfig.key === key) {
+                sortConfig.direction = sortConfig.direction === 'ascending' ? 'descending' : 'ascending';
+            } else {
+                sortConfig.key = key;
+                sortConfig.direction = 'ascending';
+            }
+            renderTable();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            Object.values(filters).forEach(filter => filter.value = '');
+            sortConfig = { key: 'dia', direction: 'ascending' };
+            renderTable();
+        });
+
+        populateFilters();
+        renderTable();
+    </script>
+
+</body>
+</html>
