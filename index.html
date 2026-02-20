@@ -7,166 +7,187 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         
-        .calendar-container {
-            min-width: 1000px; /* Garante que o calendário não esprema em telas pequenas */
-        }
-
+        /* Layout de Grade Fixa */
+        .calendar-wrapper { min-width: 1100px; }
         .calendar-grid {
             display: grid;
-            grid-template-columns: 100px repeat(6, 1fr); /* Coluna de hora com largura fixa */
+            grid-template-columns: 80px repeat(6, 1fr);
             gap: 1px;
             background-color: #e2e8f0;
-            border: 1px solid #e2e8f0;
         }
 
-        .time-label { 
-            background: #f8fafc; 
+        /* Estilização de Cabeçalhos */
+        .sticky-header { position: sticky; top: 0; z-index: 30; }
+        .day-header { 
+            background: #0f172a; 
+            color: white; 
+            padding: 14px 8px; 
+            font-weight: 800; 
+            text-align: center; 
+            text-transform: uppercase; 
+            font-size: 0.75rem; 
+            letter-spacing: 0.1em;
+        }
+
+        .time-col { 
+            background: #f1f5f9; 
             font-weight: 700; 
             color: #475569; 
-            font-size: 0.75rem; 
+            font-size: 0.7rem; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            height: 100%;
-            border-right: 2px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
         }
 
-        .day-header { 
-            background: #1e293b; 
-            color: white; 
-            padding: 12px; 
-            font-weight: 700; 
-            text-align: center; 
-            text-transform: uppercase; 
-            font-size: 0.8rem; 
-            letter-spacing: 0.05em; 
-        }
-
+        /* Slots de Horário */
         .slot { 
             background: white; 
-            min-height: 100px; 
-            padding: 6px; 
+            min-height: 110px; 
+            padding: 4px; 
             display: flex; 
             flex-direction: column; 
-            gap: 6px; 
+            gap: 4px; 
+            transition: background 0.2s;
         }
+        .slot:hover { background-color: #fcfcfd; }
 
-        .course-group {
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 4px;
+        /* Card de Curso */
+        .course-card {
+            border-radius: 4px;
+            padding: 4px 6px;
+            border-left-width: 4px;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
+        .course-card:hover { transform: translateX(2px); filter: brightness(0.95); }
+        .course-card.filtered-out { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
 
-        .course-group:last-child {
-            border-bottom: none;
-        }
-
-        .course-title {
-            font-size: 9px;
-            font-weight: 800;
+        .course-label {
+            font-size: 8px;
+            font-weight: 900;
             text-transform: uppercase;
-            color: #64748b;
             margin-bottom: 2px;
             display: block;
+            letter-spacing: 0.02em;
         }
 
-        .prof-badges-container {
+        .prof-list {
+            font-size: 10px;
+            font-weight: 600;
             display: flex;
             flex-wrap: wrap;
-            gap: 3px;
+            gap: 4px;
         }
 
-        .prof-badge {
-            font-size: 9px;
-            padding: 1px 5px;
-            border-radius: 3px;
-            font-weight: 600;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
+        /* Temas por Curso */
+        .theme-cordas { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+        .theme-violino { background: #fdf2f8; border-color: #ec4899; color: #9d174d; }
+        .theme-canto { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+        .theme-bateria { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
+        .theme-teclas { background: #eef2ff; border-color: #6366f1; color: #3730a3; }
+        .theme-musicalizacao { background: #faf5ff; border-color: #a855f7; color: #6b21a8; }
+        .theme-teatro { background: #f0f9ff; border-color: #0ea5e9; color: #075985; }
+        .theme-baixo { background: #f1f5f9; border-color: #64748b; color: #1e293b; }
+        .theme-banda { background: #fff7ed; border-color: #f97316; color: #9a3412; }
 
-        /* Cores Específicas por Curso */
-        .cat-cordas { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .cat-violino { background-color: #ecfdf5; color: #065f46; border: 1px solid #d1fae5; }
-        .cat-canto { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .cat-bateria { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .cat-teclas { background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
-        .cat-musicalizacao { background-color: #fae8ff; color: #86198f; border: 1px solid #f5d0fe; }
-        .cat-teatro { background-color: #f0f9ff; color: #075985; border: 1px solid #e0f2fe; }
-        .cat-baixo { background-color: #f3f4f6; color: #1f2937; border: 1px solid #e5e7eb; }
-        .cat-banda { background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
-        
-        .unit-toggle button.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="antialiased text-slate-900">
 
-    <div class="max-w-full mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <div>
-                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Canto da Música</h1>
-                <p class="text-slate-500 text-sm font-medium">Mapa de Disponibilidade por Curso e Professor</p>
+    <div class="max-w-[1600px] mx-auto p-4 lg:p-6">
+        <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-indigo-600 p-3 rounded-xl shadow-lg shadow-indigo-200 text-white">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Canto da Música</h1>
+                    <p class="text-slate-500 font-medium">Agenda Estratégica de Disponibilidade Presencial</p>
+                </div>
             </div>
-            <div class="unit-toggle inline-flex rounded-lg shadow-sm bg-white p-1 border border-slate-200">
-                <button onclick="switchUnit('sbc')" id="btn-sbc" class="active px-8 py-2 text-sm font-bold rounded-md transition-all">SBC</button>
-                <button onclick="switchUnit('scs')" id="btn-scs" class="px-8 py-2 text-sm font-bold rounded-md transition-all">SCS</button>
+
+            <div class="flex flex-wrap items-center gap-4 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-full xl:w-auto">
+                <!-- Filtro de Curso -->
+                <div class="px-3 border-r border-slate-100">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Filtrar Curso</label>
+                    <select id="course-filter" onchange="applyFilter()" class="text-sm font-bold text-indigo-600 focus:outline-none bg-transparent cursor-pointer">
+                        <option value="all">Mostrar Todos</option>
+                    </select>
+                </div>
+                <!-- Toggle Unidade -->
+                <div class="flex bg-slate-100 p-1 rounded-xl">
+                    <button onclick="switchUnit('sbc')" id="btn-sbc" class="px-6 py-2 text-sm font-bold rounded-lg transition-all duration-200">SBC</button>
+                    <button onclick="switchUnit('scs')" id="btn-scs" class="px-6 py-2 text-sm font-bold rounded-lg transition-all duration-200">SCS</button>
+                </div>
             </div>
         </header>
 
-        <!-- Legenda -->
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-            <div class="flex items-center gap-2"><div class="w-3 h-3 cat-cordas rounded"></div><span class="text-[10px] font-bold text-slate-500 uppercase">Cordas</span></div>
-            <div class="flex items-center gap-2"><div class="w-3 h-3 cat-violino rounded"></div><span class="text-[10px] font-bold text-slate-500 uppercase">Violino</span></div>
-            <div class="flex items-center gap-2"><div class="w-3 h-3 cat-canto rounded"></div><span class="text-[10px] font-bold text-slate-500 uppercase">Canto</span></div>
-            <div class="flex items-center gap-2"><div class="w-3 h-3 cat-bateria rounded"></div><span class="text-[10px] font-bold text-slate-500 uppercase">Bateria</span></div>
-            <div class="flex items-center gap-2"><div class="w-3 h-3 cat-teclas rounded"></div><span class="text-[10px] font-bold text-slate-500 uppercase">Teclas</span></div>
-            <div class="flex items-center gap-2"><div class="w-3 h-3 cat-baixo rounded"></div><span class="text-[10px] font-bold text-slate-500 uppercase">Baixo</span></div>
-            <div class="flex items-center gap-2"><div class="w-3 h-3 cat-musicalizacao rounded"></div><span class="text-[10px] font-bold text-slate-500 uppercase">Musicaliz.</span></div>
-            <div class="flex items-center gap-2"><div class="w-3 h-3 cat-teatro rounded"></div><span class="text-[10px] font-bold text-slate-500 uppercase">Teatro</span></div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-x-auto">
-            <div class="calendar-container">
-                <div class="calendar-grid" id="calendar">
-                    <div class="time-label" style="background: #1e293b; border: none;"></div>
-                    <div class="day-header">Segunda</div>
-                    <div class="day-header">Terça</div>
-                    <div class="day-header">Quarta</div>
-                    <div class="day-header">Quinta</div>
-                    <div class="day-header">Sexta</div>
-                    <div class="day-header">Sábado</div>
+        <!-- Grid Principal -->
+        <div class="bg-white rounded-3xl shadow-2xl shadow-slate-200 border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <div class="calendar-wrapper">
+                    <div class="calendar-grid" id="calendar">
+                        <!-- Header (Sticky) -->
+                        <div class="bg-slate-900 z-40"></div>
+                        <div class="day-header sticky-header">Segunda</div>
+                        <div class="day-header sticky-header">Terça</div>
+                        <div class="day-header sticky-header">Quarta</div>
+                        <div class="day-header sticky-header">Quinta</div>
+                        <div class="day-header sticky-header">Sexta</div>
+                        <div class="day-header sticky-header">Sábado</div>
+                        
+                        <!-- Conteúdo será injetado pelo JS -->
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-                <h3 class="text-indigo-900 font-bold text-xs uppercase mb-2">Estratégia de Deslocamento</h3>
-                <p class="text-xs text-indigo-700 leading-relaxed">Professores híbridos (como Marcela S.) possuem dias fixos por unidade. A troca de sede só ocorre entre períodos (Ex: Manhã em SBC, Tarde em SCS).</p>
+
+        <!-- Rodapé Informativo -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Logística Marcela S.</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm"><span class="font-bold">SBC:</span> <span class="text-slate-600">Seg e Qua (Manhã)</span></div>
+                    <div class="flex justify-between text-sm"><span class="font-bold">SCS:</span> <span class="text-slate-600">Qui (Tarde) e Sex (Manhã)</span></div>
+                </div>
             </div>
-            <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <h3 class="text-slate-900 font-bold text-xs uppercase mb-2">Visão por Matrícula</h3>
-                <p class="text-xs text-slate-600 leading-relaxed">Consulte primeiro a modalidade desejada no dia. Os nomes listados abaixo de cada curso são os professores presenciais disponíveis.</p>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Destaque do Time</h4>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    <strong>Luan (SBC):</strong> Foco em Baixo até as 22h.<br>
+                    <strong>Augusto (SBC):</strong> Presencial Ter/Qua (14-16h) e Qui (Noite).
+                </p>
+            </div>
+            <div class="bg-indigo-600 p-5 rounded-2xl shadow-lg shadow-indigo-100 text-white flex items-center gap-4">
+                <div class="bg-white/20 p-2 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <p class="text-xs font-medium leading-tight">Use o filtro no topo para localizar rapidamente horários de uma modalidade específica na semana.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Definição das Categorias para Ordem e Cores
-        const courseCategories = [
-            { id: "Cordas", label: "Cordas", class: "cat-cordas" },
-            { id: "Baixo", label: "Baixo", class: "cat-baixo" },
-            { id: "Violino", label: "Violino", class: "cat-violino" },
-            { id: "Canto", label: "Canto", class: "cat-canto" },
-            { id: "Bateria", label: "Bateria", class: "cat-bateria" },
-            { id: "Teclas", label: "Teclas", class: "cat-teclas" },
-            { id: "Musicalização", label: "Musicalização", class: "cat-musicalizacao" },
-            { id: "Teatro", label: "Teatro", class: "cat-teatro" },
-            { id: "Prática de Banda", label: "Prática de Banda", class: "cat-banda" }
-        ];
+        const courseConfig = {
+            "Cordas": { label: "Cordas", class: "theme-cordas" },
+            "Violino": { label: "Violino", class: "theme-violino" },
+            "Canto": { label: "Canto", class: "theme-canto" },
+            "Bateria": { label: "Bateria", class: "theme-bateria" },
+            "Teclas": { label: "Teclas", class: "theme-teclas" },
+            "Musicalização": { label: "Musicalização", class: "theme-musicalizacao" },
+            "Teatro": { label: "Teatro", class: "theme-teatro" },
+            "Baixo": { label: "Baixo", class: "theme-baixo" },
+            "Prática de Banda": { label: "Prática de Banda", class: "theme-banda" }
+        };
 
         const teachers = [
             { name: "Ariel", courses: ["Canto", "Prática de Banda"], units: ["scs"], schedule: [] },
@@ -250,65 +271,86 @@
         ];
 
         let currentUnit = 'sbc';
+        let currentFilter = 'all';
 
-        function renderCalendar() {
+        function init() {
+            // Popular Filtro
+            const filter = document.getElementById('course-filter');
+            Object.keys(courseConfig).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = courseConfig[key].label;
+                filter.appendChild(opt);
+            });
+            render();
+        }
+
+        function applyFilter() {
+            currentFilter = document.getElementById('course-filter').value;
+            render();
+        }
+
+        function switchUnit(unit) {
+            currentUnit = unit;
+            document.getElementById('btn-sbc').className = unit === 'sbc' ? 'px-6 py-2 text-sm font-bold rounded-lg bg-indigo-600 text-white shadow-md' : 'px-6 py-2 text-sm font-bold rounded-lg text-slate-600 hover:bg-slate-200';
+            document.getElementById('btn-scs').className = unit === 'scs' ? 'px-6 py-2 text-sm font-bold rounded-lg bg-indigo-600 text-white shadow-md' : 'px-6 py-2 text-sm font-bold rounded-lg text-slate-600 hover:bg-slate-200';
+            render();
+        }
+
+        function render() {
             const grid = document.getElementById('calendar');
-            const items = grid.querySelectorAll('.time-label, .slot');
+            const items = grid.querySelectorAll('.time-col, .slot');
             items.forEach(el => el.remove());
 
-            for(let hour = 9; hour <= 21; hour++) {
-                const label = document.createElement('div');
-                label.className = 'time-label';
-                label.textContent = `${hour}:00`;
-                grid.appendChild(label);
+            for (let h = 9; h <= 21; h++) {
+                // Coluna de Hora
+                const timeCol = document.createElement('div');
+                timeCol.className = 'time-col';
+                timeCol.textContent = `${h}:00`;
+                grid.appendChild(timeCol);
 
-                for(let day = 1; day <= 6; day++) {
+                for (let d = 1; d <= 6; d++) {
                     const slot = document.createElement('div');
                     slot.className = 'slot';
 
-                    // Agrupar por curso primeiro (Conforme pedido: Cursos -> Professores)
-                    const dataInSlot = [];
+                    // Processar dados do slot
+                    const coursesInSlot = {};
 
-                    courseCategories.forEach(cat => {
-                        const profsInCourse = teachers.filter(t => {
-                            const hasUnit = t.units.includes(currentUnit);
-                            const hasCourse = t.courses.includes(cat.id);
-                            const hasTime = t.schedule.some(s => {
-                                const unitMatch = s.u ? s.u === currentUnit : true;
-                                return s.d === day && s.h.includes(hour) && unitMatch;
-                            });
-                            return hasUnit && hasCourse && hasTime;
+                    teachers.forEach(teacher => {
+                        const inUnit = teacher.units.includes(currentUnit);
+                        const hasSched = teacher.schedule.some(s => {
+                            const uMatch = s.u ? s.u === currentUnit : true;
+                            return s.d === d && s.h.includes(h) && uMatch;
                         });
 
-                        if (profsInCourse.length > 0) {
-                            dataInSlot.push({
-                                category: cat,
-                                profs: profsInCourse
+                        if (inUnit && hasSched) {
+                            teacher.courses.forEach(c => {
+                                if (!coursesInSlot[c]) coursesInSlot[c] = [];
+                                if (!coursesInSlot[c].includes(teacher.name)) coursesInSlot[c].push(teacher.name);
                             });
                         }
                     });
 
-                    dataInSlot.forEach(item => {
-                        const group = document.createElement('div');
-                        group.className = 'course-group';
-                        
-                        const title = document.createElement('span');
-                        title.className = 'course-title';
-                        title.textContent = item.category.label;
-                        group.appendChild(title);
+                    // Renderizar cards de cursos
+                    Object.keys(courseConfig).forEach(courseKey => {
+                        if (coursesInSlot[courseKey]) {
+                            const isFiltered = currentFilter !== 'all' && currentFilter !== courseKey;
+                            
+                            const card = document.createElement('div');
+                            card.className = `course-card ${courseConfig[courseKey].class} ${isFiltered ? 'filtered-out' : ''}`;
+                            
+                            const label = document.createElement('span');
+                            label.className = 'course-label';
+                            label.textContent = courseConfig[courseKey].label;
+                            
+                            const proflist = document.createElement('div');
+                            proflist.className = 'prof-list';
+                            proflist.textContent = coursesInSlot[courseKey].join(', ');
 
-                        const badgesContainer = document.createElement('div');
-                        badgesContainer.className = 'prof-badges-container';
-
-                        item.profs.forEach(p => {
-                            const badge = document.createElement('div');
-                            badge.className = `prof-badge ${item.category.class}`;
-                            badge.textContent = p.name;
-                            badgesContainer.appendChild(badge);
-                        });
-
-                        group.appendChild(badgesContainer);
-                        slot.appendChild(group);
+                            card.appendChild(label);
+                            card.appendChild(proflist);
+                            slot.appendChild(card);
+                        }
                     });
 
                     grid.appendChild(slot);
@@ -316,14 +358,7 @@
             }
         }
 
-        function switchUnit(unit) {
-            currentUnit = unit;
-            document.getElementById('btn-sbc').classList.toggle('active', unit === 'sbc');
-            document.getElementById('btn-scs').classList.toggle('active', unit === 'scs');
-            renderCalendar();
-        }
-
-        renderCalendar();
+        window.onload = init;
     </script>
 </body>
 </html>
